@@ -7,5 +7,6 @@ services:
       dockerfile: Dockerfile
     image: "148793515739.dkr.ecr.us-west-2.amazonaws.com/app:1"
     ports:
+      - 80:80
       - 443:443
     # command: /bin/bash scripts/dev-init

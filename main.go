@@ -13,9 +13,10 @@ func main() {
 	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
 		w.Write([]byte(fmt.Sprintf(
-			"This is an example server. Time: %s\n",
+			"This is an example HTTPS server. Time: %s\n",
 			time.Now().Format(time.RFC1123),
 		)))
+		w.WriteHeader(http.StatusOK)
 	})
 	cfg := &tls.Config{
 		InsecureSkipVerify:       true,
@@ -35,8 +36,30 @@ func main() {
 		TLSConfig:    cfg,
 		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
 	}
+	go startHTTP()
 	fmt.Println("----------------------------")
 	fmt.Println("STARTING SSL SERVICE ON :443")
 	fmt.Println("----------------------------")
 	log.Fatal(srv.ListenAndServeTLS("/root/.ssl-certs/server.crt", "/root/.ssl-certs/server.key"))
+}
+
+func startHTTP() error {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+		w.Write([]byte(fmt.Sprintf(
+			"This is an example HTTP server. Time: %s\n",
+			time.Now().Format(time.RFC1123),
+		)))
+		w.WriteHeader(http.StatusOK)
+		// w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
+	})
+	srv := &http.Server{
+		Addr:    ":80",
+		Handler: mux,
+	}
+	fmt.Println("----------------------------")
+	fmt.Println("STARTING HTTP SERVICE ON :80")
+	fmt.Println("----------------------------")
+	log.Fatal(srv.ListenAndServe())
+	return nil
 }
